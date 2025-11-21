@@ -5,7 +5,6 @@ import { marked } from 'marked';
 import { ZamaService } from './services/ZamaService';
 
 // CONFIG
-const getFirebaseConfig = () => { try { return JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG || '{}'); } catch (e) { return {}; } };
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${import.meta.env.VITE_GEMINI_KEY}`;
 
 // ICONS WRAPPER
@@ -65,7 +64,6 @@ const MarketCard = ({ coin }) => {
 export default function App() {
     // STATE
     const [user, setUser] = useState(null);
-    const [authInstance, setAuthInstance] = useState(null);
     
     const [topCoins, setTopCoins] = useState([]);
     const [allCoins, setAllCoins] = useState([]);
@@ -96,25 +94,6 @@ export default function App() {
 
     // INIT
     useEffect(() => {
-        const initFirebase = async () => {
-            if (window.firebaseInit && !authInstance) {
-                const { initializeApp, getAuth, onAuthStateChanged } = window.firebaseInit;
-                const config = getFirebaseConfig();
-                if (config && config.apiKey) {
-                    try {
-                        const app = initializeApp(config);
-                        const auth = getAuth(app);
-                        setAuthInstance(auth);
-                        onAuthStateChanged(auth, (u) => {
-                            if (u) setUser({ type: 'Google', name: u.displayName, avatar: u.photoURL, uid: u.uid });
-                            else if (user?.type === 'Google') setUser(null);
-                        });
-                    } catch (e) { console.error('Firebase Init Error:', e); }
-                }
-            }
-        };
-        setTimeout(initFirebase, 500);
-
         const fetchData = async () => {
             try {
                 const topRes = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana,avalanche-2&sparkline=true');
@@ -127,15 +106,6 @@ export default function App() {
     }, []);
 
     // HANDLERS
-    const handleGoogleLogin = async () => {
-        if (!authInstance) return alert('Firebase config missing in .env');
-        try {
-            const { GoogleAuthProvider, signInWithPopup } = window.firebaseInit;
-            await signInWithPopup(authInstance, new GoogleAuthProvider());
-            setAuthModalOpen(false);
-        } catch (error) { alert('Login Failed: ' + error.message); }
-    };
-
     const handleWalletConnect = async (chain) => {
         try {
             let address = '';
@@ -155,7 +125,6 @@ export default function App() {
     };
 
     const handleLogout = () => {
-        if (authInstance) window.firebaseInit.signOut(authInstance);
         setUser(null);
         setUserAssets([]);
         setCategories(['General']);
@@ -226,7 +195,7 @@ export default function App() {
                     {user ? (
                         <div className='flex items-center gap-4'>
                             <div className='text-right hidden md:block'><div className='text-sm font-bold text-white'>{user.name}</div><div className='text-[10px] text-gray-500 uppercase'>{user.type}</div></div>
-                            <div className='w-10 h-10 rounded-full bg-encra-800 border border-encra-gold flex items-center justify-center text-encra-gold font-bold overflow-hidden'>{user.avatar ? <img src={user.avatar} className='w-full h-full object-cover'/> : user.name[0]}</div>
+                            <div className='w-10 h-10 rounded-full bg-encra-800 border border-encra-gold flex items-center justify-center text-encra-gold font-bold'>{user.name[0]}</div>
                             <button onClick={handleLogout} className='p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20'><Icon name='log-out' size={18}/></button>
                         </div>
                     ) : (
@@ -346,12 +315,10 @@ export default function App() {
                     <div className='bg-encra-900 w-full max-w-md rounded-2xl border border-encra-800 shadow-2xl'>
                         <button onClick={() => setAuthModalOpen(false)} className='absolute right-4 top-4 text-gray-500 hover:text-white'><Icon name='search' className='rotate-45'/></button>
                         <div className='p-8 text-center'>
-                            <h2 className='text-2xl font-bold text-white mb-8'>Login Required</h2>
+                            <h2 className='text-2xl font-bold text-white mb-8'>Connect Wallet</h2>
                             <div className='space-y-3'>
-                                <button onClick={handleGoogleLogin} className='w-full p-4 bg-white text-black hover:bg-gray-100 rounded-xl flex items-center justify-center gap-3 font-bold'>Google Login</button>
-                                <div className='text-center text-xs text-gray-600'>- OR -</div>
-                                <button onClick={() => handleWalletConnect('EVM')} className='w-full p-4 bg-encra-800 hover:bg-encra-700 rounded-xl flex items-center gap-3 border border-transparent hover:border-orange-500/30'><div className='text-orange-500'><Icon name='plus' size={18}/></div><div className='text-white font-bold'>EVM Wallet</div></button>
-                                <button onClick={() => handleWalletConnect('SOL')} className='w-full p-4 bg-encra-800 hover:bg-encra-700 rounded-xl flex items-center gap-3 border border-transparent hover:border-purple-500/30'><div className='text-purple-500'><Icon name='plus' size={18}/></div><div className='text-white font-bold'>Solana Wallet</div></button>
+                                <button onClick={() => handleWalletConnect('EVM')} className='w-full p-4 bg-encra-800 hover:bg-encra-700 rounded-xl flex items-center justify-center gap-3 border border-transparent hover:border-orange-500/30 transition-all'><div className='text-orange-500'><Icon name='plus' size={18}/></div><div className='text-white font-bold'>EVM Wallet (MetaMask)</div></button>
+                                <button onClick={() => handleWalletConnect('SOL')} className='w-full p-4 bg-encra-800 hover:bg-encra-700 rounded-xl flex items-center justify-center gap-3 border border-transparent hover:border-purple-500/30 transition-all'><div className='text-purple-500'><Icon name='plus' size={18}/></div><div className='text-white font-bold'>Solana Wallet (Phantom)</div></button>
                             </div>
                         </div>
                     </div>
