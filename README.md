@@ -130,7 +130,14 @@ npm run dev
 
 ### Environment Setup
 
-Create a `.env` file in the project root with the following variables:
+#### Local Development
+
+1. `.env.example` dosyasını kopyalayın:
+```bash
+cp .env.example .env
+```
+
+2. `.env` dosyasını düzenleyin ve API key'lerinizi ekleyin:
 
 ```env
 # Firebase Configuration (JSON format)
@@ -154,6 +161,10 @@ VITE_GEMINI_KEY=AIzaSyC...your_gemini_api_key
    - Click "Get API Key" in top right
    - Create new API key or use existing
    - Copy key to `.env` file
+
+#### Production Deployment
+
+**ÖNEMLİ:** `.env` dosyası GitHub'a yüklenmez (güvenlik için). Production'da environment variables'ı deployment platform'unda (Vercel/Netlify) ekleyin. Detaylar için [Production Deployment](#-production-deployment) bölümüne bakın.
 
 ### MetaMask Configuration
 
@@ -263,7 +274,46 @@ npm run dev
 3. Click **"Add Asset"** → Search and add cryptocurrency
 4. Click **"AI Analysis"** for portfolio insights
 
-**Full walkthrough:** See [Quick_Start.md](./Quick_Start.md)
+---
+
+## ☁️ Production Deployment
+
+### Vercel Deployment (Önerilen)
+
+1. **Vercel'e gidin:** https://vercel.com
+2. **"Add New Project"** → GitHub repository'nizi seçin
+3. **Environment Variables** sekmesine gidin ve şunları ekleyin:
+   ```
+   VITE_FIREBASE_CONFIG = {"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
+   VITE_GEMINI_KEY = AIzaSyC...
+   ```
+4. **Deploy** butonuna tıklayın
+5. ✅ Projeniz canlıda!
+
+### Netlify Deployment
+
+1. **Netlify'e gidin:** https://netlify.com
+2. **"Add new site"** → **"Import an existing project"**
+3. GitHub repository'nizi bağlayın
+4. **Site settings** → **Environment variables** → **Add variable**
+5. Şu değişkenleri ekleyin:
+   ```
+   VITE_FIREBASE_CONFIG = {"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
+   VITE_GEMINI_KEY = AIzaSyC...
+   ```
+6. **Deploy site**
+
+### GitHub Pages (Static Build)
+
+```bash
+# Build oluştur
+npm run build
+
+# dist klasörünü GitHub Pages'e deploy edin
+# Not: Environment variables'ı build zamanında eklemeniz gerekir
+```
+
+**Önemli:** Production'da `.env` dosyasına gerek yok! Environment variables'ı platform üzerinden ekleyin.
 
 ---
 
